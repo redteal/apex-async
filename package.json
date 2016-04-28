@@ -9,6 +9,6 @@
   },
   "description": "A delegated async solution for Salesforce",
   "devDependencies": {
-    "sfdc-travisci-coveralls": "^0.1.3"
+    "sfdc-travisci-coveralls": "redteal/sfdc-travisci-coveralls"
   }
 }

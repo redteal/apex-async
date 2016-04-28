@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>List</customSettingsType>
+    <customSettingsVisibility>Public</customSettingsVisibility>
+    <description>Configures async behavior</description>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Enabled__c</fullName>
+        <defaultValue>true</defaultValue>
+        <description>Enables async processing. Unchecking disables processing of *pending* AsyncRequests.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Enables async processing. Unchecking disables processing of *pending* AsyncRequests.</inlineHelpText>
+        <label>Enabled</label>
+        <trackTrending>false</trackTrending>
+        <type>Checkbox</type>
+    </fields>
+    <label>AsyncConfig</label>
+</CustomObject>
