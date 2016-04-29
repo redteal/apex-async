@@ -70,7 +70,7 @@
 		List<AsyncRequest__c> reqs = new List<AsyncRequest__c>();
 		for (Integer i = 0; i < 50; i++) {
 			Map<String, Object> data = new Map<String, Object> {'i' => i};
-			reqs.add(RT_AsyncRequestService.create(RT_AsyncDelegateTest.FooAsyncTask.class, data));
+			reqs.add(RT_AsyncRequestService.create(FooAsyncTask.class, data));
 		}
 		insert reqs;
 		RT_AsyncRequestService.enqueue();
@@ -81,11 +81,11 @@
 	}
 
 	@isTest static void testEnqueueAsync() {
-		RT_AsyncRequestService.enqueueAsync(null);
+		RT_AsyncDelegate.enqueueAsync(null);
 	}
 
 	@isTest static void testScheduleAsync() {
-		RT_AsyncRequestService.scheduleAsync();
+		RT_AsyncDelegate.scheduleAsync();
 	}
 	
 	public class FooAsyncTask implements RT_IAsyncTask {
