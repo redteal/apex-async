@@ -5,7 +5,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	private class ApexTypeException extends Exception {}
 	
 	private static Boolean isChaining = false;
-
+	
 	private static AsyncConfig__c config;
 	static {
 		config = AsyncConfig__c.getInstance('default');
@@ -197,7 +197,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	
 	@testVisible
 	private static Id scheduleAsync() {
-		Id jobId = RT_SchedulableDispatcher.schedule(RT_AsyncSchedulable.class);
+		Id jobId = RT_SchedulableDispatcher.schedule(QueueableSchedulable.class);
 		System.debug('Scheduled async job (' + jobId + ')');
 		return jobId;
 	}
@@ -226,5 +226,12 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	private static Boolean willHitQueryLimits(Integer nQueries, Integer nRows) {
 		return getAvailableQueries() <= nQueries - 1 ||
 		       getAvailableQueryRows() <= nRows - 1;
+	}
+	
+	public class QueueableSchedulable implements Schedulable {
+
+		public void execute(SchedulableContext context) {
+			System.enqueueJob(new RT_AsyncDelegate());
+		}
 	}
 }

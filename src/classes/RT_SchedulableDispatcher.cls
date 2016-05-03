@@ -28,19 +28,30 @@ public class RT_SchedulableDispatcher implements Schedulable {
 		sched.execute(sc);
 	}
 	
-	/** Schedules a one-time job to be dispatched in one minute
+	/**
+	 * Schedules a one-time job to be dispatched in one minute
+	 * @param jobType Apex Type of the implemented Schedulable
+	 * @return the job Id
 	 */
 	public static Id schedule(Type jobType) {
 		return schedule(null, null, jobType);
 	}
 
-	/** Schedules a one-time job to be dispatched
+	/**
+	 * Schedules a one-time job to be dispatched
+	 * @param dt DateTime of when the job should be run
+	 * @param jobType Apex Type of the implemented Schedulable
+	 * @return the job Id
 	 */
 	public static Id schedule(DateTime dt, Type jobType) {
 		return schedule(dt, null, jobType);
 	}
 	
-	/** Schedules a recurring job to be dispatched
+	/**
+	 * Schedules a recurring job to be dispatched
+	 * @param expr Cron expression for scheduling the job
+	 * @param jobType Apex Type of the implemented Schedulable
+	 * @return the job Id
 	 */
 	public static Id schedule(String expr, Type jobType) {
 		return schedule(null, expr, jobType);

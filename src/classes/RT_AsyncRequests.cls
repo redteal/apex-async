@@ -21,7 +21,7 @@ public class RT_AsyncRequests extends fflib_SObjectDomain {
 	
 	public override void onAfterInsert() {
 		if (enabled && isAnyPending()) {
-			RT_AsyncDelegate.enqueue();
+			RT_AsyncRequestService.enqueue();
 		}
 	}
 	
