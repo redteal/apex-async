@@ -4,11 +4,16 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	
 	private class ApexTypeException extends Exception {}
 	
-	private static Boolean isChaining = false;
-
-	@testVisible
-	private static Boolean simulateQueryLimits = false;
+	private class FakeException extends Exception {}
 	
+	private static Boolean isChaining = false;
+	
+	@testVisible
+	private static Boolean simulateQueryLimits = false,
+	                       simulateLockedRequest = false,
+	                       simulateFutureException = false,
+	                       simulateScheduleException = false;
+	                       
 	private static AsyncConfig__c config;
 	static {
 		config = AsyncConfig__c.getInstance('default');
@@ -44,11 +49,14 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 			return;
 		}
 		try {
-			// Cannot lock and use ORDER BY in same query, so query the same record with FOR UPDATE
+			if (simulateLockedRequest) {
+				throw new FakeException();
+			}
+			// Cannot lock and use ORDER BY in same query; lock the record with FOR UPDATE
 			req = RT_AsyncRequestService.findById(req.Id);
 		}
 		catch (Exception e) {
-			if (e instanceof QueryException) {
+			if (e instanceof QueryException || simulateLockedRequest) {
 				System.debug(LoggingLevel.INFO, 'Request seems to be locked by another process; reattempting...');
 				enqueue(currentJobId);
 			}
@@ -58,6 +66,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 		req.JobId__c = currentJobId;
 		
 		// dynamically delegate to implementation
+		Savepoint sp = Database.setSavepoint();
 		try {
 			RT_IAsyncTask task = createAsyncTask(req.AsyncType__c);
 			System.debug(LoggingLevel.INFO, 'Executing async task (' + req.Id + ')');
@@ -79,8 +88,8 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 		catch (Exception e) {
 			System.debug(LoggingLevel.ERROR, 'An exception occurred while processing task. Request Id: ' + req.Id);
 			RT_AsyncRequestService.setError(req, e);
+			Database.rollback(sp);
 			update req;
-			System.debug(LoggingLevel.DEBUG, req);
 		}
 		Boolean hasAdditional;
 		if (!willHitQueryLimits(1, 1)) {
@@ -124,7 +133,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 			return null;
 		}
 		// attempt to queue a job in this context
-		if (getAvailableQueueableJobs() > 0) {
+		if (getAvailableQueueableJobs() > 0 && !simulateFutureException && !simulateScheduleException) {
 			if (!RT_AsyncRequestService.hasAvailableQueueSlot(currentJobId)) {
 				System.debug('No queueable slots available for user (' + UserInfo.getUserId() +
 				             '). Yielding to the current job (' + currentJobId + ').');
@@ -143,8 +152,11 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 			}
 		}
 		// try @future fallback
-		if (getAvailableFutureCalls() > 0) {
+		if (getAvailableFutureCalls() > 0 || simulateFutureException) {
 			try {
+				if (simulateFutureException) {
+					throw new FakeException();
+				}
 				enqueueAsync(currentJobId);
 				System.debug('Enqueued async @future method.');
 				return null;
@@ -156,6 +168,9 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 		}
 		// if all else has failed, try scheduled fallback
 		try {
+			if (simulateScheduleException) {
+				throw new FakeException();
+			}
 			return scheduleAsync();
 		}
 		catch (Exception e) {
@@ -235,7 +250,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	}
 	
 	public class QueueableSchedulable implements Schedulable {
-
+	
 		public void execute(SchedulableContext context) {
 			System.enqueueJob(new RT_AsyncDelegate());
 		}

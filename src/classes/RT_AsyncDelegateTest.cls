@@ -106,10 +106,37 @@
 			System.assertEquals('Type \'' + name + '\' does not exist', e.getMessage());
 		}
 	}
-
+	
 	@isTest static void testExecuteAtQueryLimits() {
 		RT_AsyncDelegate.simulateQueryLimits = true;
 		new RT_AsyncDelegate().execute((Id) null);
+	}
+	
+	@isTest static void testErroringAsyncTask() {
+		Test.startTest();
+		AsyncRequest__c req = RT_AsyncRequestService.create(ErroringAsyncTask.class, new Map<String, Object>());
+		insert req;
+		Test.stopTest();
+		req = [ SELECT Id, Status__c FROM AsyncRequest__c WHERE Id = :req.Id ];
+		System.assertEquals('Error', req.Status__c);
+	}
+	
+	@isTest static void testLockedRequest() {
+		RT_AsyncDelegate.simulateLockedRequest = true;
+		AsyncRequest__c req = RT_AsyncRequestService.create(FooAsyncTask.class, new Map<String, Object>());
+		insert req;
+	}
+	
+	@isTest static void testFutureFailure() {
+		RT_AsyncDelegate.simulateFutureException = true;
+		AsyncRequest__c req = RT_AsyncRequestService.create(FooAsyncTask.class, new Map<String, Object>());
+		insert req;
+	}
+	
+	@isTest static void testScheduleFailure() {
+		RT_AsyncDelegate.simulateScheduleException = true;
+		AsyncRequest__c req = RT_AsyncRequestService.create(FooAsyncTask.class, new Map<String, Object>());
+		insert req;
 	}
 	
 	public class FooAsyncTask implements RT_IAsyncTask {
@@ -118,4 +145,13 @@
 			hitAsyncTask++;
 		}
 	}
+	
+	public class ErroringAsyncTask implements RT_IAsyncTask {
+	
+		public void execute(AsyncRequest__c asyncRequest, Map<String, Object> params) {
+			throw new FooException();
+		}
+	}
+	
+	class FooException extends Exception {}
 }
