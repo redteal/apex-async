@@ -1,12 +1,12 @@
 public with sharing class RT_AsyncRequestReattemptController {
 
 	private ApexPages.StandardSetController sc;
+
+	@testVisible
+	private Boolean throwOnSave = false; // code coverage
 	
 	public RT_AsyncRequestReattemptController(ApexPages.StandardSetController sc) {
 		this.sc = sc;
-		if (!Test.isRunningTest()) {
-			sc.addFields('Status__c'.split(','));
-		}
 	}
 	
 	public PageReference clearErrors() {
@@ -20,6 +20,9 @@ public with sharing class RT_AsyncRequestReattemptController {
 			record.Status__c = err ? 'Error' : 'Pending';
 		}
 		try {
+			if (throwOnSave) {
+				throw new FakeException();
+			}
 			return sc.save();
 		}
 		catch (Exception e) {
@@ -27,4 +30,6 @@ public with sharing class RT_AsyncRequestReattemptController {
 			return null;
 		}
 	}
+
+	class FakeException extends Exception {}
 }

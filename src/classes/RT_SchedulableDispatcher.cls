@@ -71,17 +71,12 @@ public class RT_SchedulableDispatcher implements Schedulable {
 			// If the job is not running, it needs to be deleted
 			System.abortJob(job.Id);
 		}
-		try {
-			if (expr == null) {
-				dt = normalizeDateTime(dt); // Don't try to schedule Apex before current time + buffer
-				Integer s = dt.second(), m = dt.minute(), h = dt.hour(), d = dt.day(), mo = dt.month(), y = dt.year();
-				expr = s + ' ' + m + ' ' + h + ' ' + d + ' ' + mo + ' ? ' + y;
-			}
-			return System.schedule(jobName, expr, new RT_SchedulableDispatcher(jobName));
+		if (expr == null) {
+			dt = normalizeDateTime(dt); // Don't try to schedule Apex before current time + buffer
+			Integer s = dt.second(), m = dt.minute(), h = dt.hour(), d = dt.day(), mo = dt.month(), y = dt.year();
+			expr = s + ' ' + m + ' ' + h + ' ' + d + ' ' + mo + ' ? ' + y;
 		}
-		catch (Exception e) {
-			throw e;
-		}
+		return System.schedule(jobName, expr, new RT_SchedulableDispatcher(jobName));
 	}
 	
 	static DateTime normalizeDateTime(DateTime dt) {
@@ -92,4 +87,6 @@ public class RT_SchedulableDispatcher implements Schedulable {
 	}
 	
 	class ApexTypeException extends Exception {}
+
+	public class FakeSchedulable {}
 }

@@ -5,6 +5,9 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	private class ApexTypeException extends Exception {}
 	
 	private static Boolean isChaining = false;
+
+	@testVisible
+	private static Boolean simulateQueryLimits = false;
 	
 	private static AsyncConfig__c config;
 	static {
@@ -95,6 +98,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 		}
 	}
 	
+	@testVisible
 	private static RT_IAsyncTask createAsyncTask(String taskTypeName) {
 		Type taskType = Type.forName(taskTypeName);
 		if (taskType == null) {
@@ -114,6 +118,7 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 		return enqueue(null);
 	}
 	
+	@testVisible
 	private static Id enqueue(Id currentJobId) {
 		if (!config.Enabled__c) {
 			return null;
@@ -224,7 +229,8 @@ public without sharing class RT_AsyncDelegate implements Queueable {
 	}
 	
 	private static Boolean willHitQueryLimits(Integer nQueries, Integer nRows) {
-		return getAvailableQueries() <= nQueries - 1 ||
+		return simulateQueryLimits ||
+		       getAvailableQueries() <= nQueries - 1 ||
 		       getAvailableQueryRows() <= nRows - 1;
 	}
 	

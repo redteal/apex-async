@@ -79,13 +79,37 @@
 		System.assertEquals(50, [ SELECT COUNT() FROM AsyncRequest__c WHERE Status__c = 'Complete' ]);
 		System.assertEquals(50, hitAsyncTask);
 	}
-
+	
 	@isTest static void testEnqueueAsync() {
 		RT_AsyncDelegate.enqueueAsync(null);
 	}
-
+	
 	@isTest static void testScheduleAsync() {
 		RT_AsyncDelegate.scheduleAsync();
+	}
+	
+	@isTest static void testAsyncDisabledCoverage() {
+		insert new AsyncConfig__c(Name = 'default', Enabled__c = false);
+		Test.startTest();
+		RT_AsyncDelegate.enqueue(null);
+		new RT_AsyncDelegate().execute((Id) null);
+		Test.stopTest();
+	}
+	
+	@isTest static void testCreateInvalidAsyncTask() {
+		String name = 'invalid!';
+		try {
+			RT_AsyncDelegate.createAsyncTask(name);
+			System.assert(false);
+		}
+		catch (Exception e) {
+			System.assertEquals('Type \'' + name + '\' does not exist', e.getMessage());
+		}
+	}
+
+	@isTest static void testExecuteAtQueryLimits() {
+		RT_AsyncDelegate.simulateQueryLimits = true;
+		new RT_AsyncDelegate().execute((Id) null);
 	}
 	
 	public class FooAsyncTask implements RT_IAsyncTask {
