@@ -20,9 +20,9 @@
 		System.assert(System.isFuture(), 'should be in future context');
 		System.assert(!System.isQueueable(), 'should not be in queueable context');
 		
-		System.assertEquals(1, RT_AsyncDelegate.getAvailableQueueableJobs(), 'should be able to enqueue a queueable in @future context');
+		System.assertEquals(50, RT_AsyncDelegate.getAvailableQueueableJobs(), 'should be able to enqueue a queueable in @future context');
 		System.enqueueJob(new FooQueueable());
-		System.assertEquals(0, RT_AsyncDelegate.getAvailableQueueableJobs(), 'should have reached queueable limit');
+		System.assertEquals(49, RT_AsyncDelegate.getAvailableQueueableJobs(), 'should have one less available queueables');
 		
 		System.assertEquals(0, RT_AsyncDelegate.getAvailableFutureCalls(), '@future call limit should be zero in @future context');
 		try {
